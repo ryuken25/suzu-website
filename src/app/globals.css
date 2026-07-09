@@ -33,6 +33,16 @@
 }
 
 * { box-sizing: border-box; }
+html, body { width: 100%; }
+button, a, [role="button"], input, select, textarea { touch-action: manipulation; }
+@media (max-width: 768px) {
+  button, a, [role="button"] { min-height: 44px; }
+  input, select, textarea { font-size: 16px; }
+  .story-sticky { position: static !important; top: auto !important; min-height: auto !important; }
+  .story-panel-frame { height: auto; max-height: none; }
+}
+.safe-modal-column { max-height: 92svh; min-height: 0; overflow-y: auto; }
+.hash-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--nav-height) + var(--anchor-gap));

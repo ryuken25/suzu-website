@@ -171,7 +171,7 @@ export function SuzuRequestModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[90] grid place-items-end bg-ink/45 p-0 backdrop-blur-md sm:place-items-center sm:p-4"
+        className="fixed inset-0 z-[90] grid place-items-end overflow-y-auto bg-ink/45 p-0 backdrop-blur-md sm:place-items-center sm:p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -211,7 +211,7 @@ export function SuzuRequestModal({
             </>
           ) : (
             <div className="grid min-h-0 flex-1 lg:grid-cols-[0.9fr_1.1fr]">
-              <aside className="min-h-0 overflow-y-auto border-b border-pink/15 bg-gradient-to-b from-blush/20 via-white to-lavender/15 p-5 lg:border-b-0 lg:border-r">
+              <aside className="safe-modal-column border-b border-pink/15 bg-gradient-to-b from-blush/20 via-white to-lavender/15 p-5 lg:border-b-0 lg:border-r">
                 {isCollab ? (
                   <CollabPreviewCarousel />
                 ) : seed?.selectedArtwork ? (
