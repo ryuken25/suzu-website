@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Music, Tv, Sparkles, Handshake } from 'lucide-react';
 import type { RequestSeed } from '@/lib/requestSeed';
 import { openCollabCards, type OpenCollabCard } from '@/data/openCollabCards';
 import { XLogo } from '@/components/common/BrandIcons';
@@ -15,11 +15,7 @@ function ImageCarousel({ images }: { images: OpenCollabCard['images'] }) {
   const hasImages = images.length > 0;
 
   if (!hasImages) {
-    return (
-      <div className="flex aspect-[16/11] items-center justify-center rounded-2xl border border-dashed border-pink/30 bg-pink/5 text-center text-xs font-medium text-mocha/60">
-        Example image will appear after X/art fetch.
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -85,6 +81,13 @@ function ImageCarousel({ images }: { images: OpenCollabCard['images'] }) {
 /*  Card                                                             */
 /* ------------------------------------------------------------------ */
 
+const cardIcons: Record<string, typeof Music> = {
+  'cover-mv-illustration': Music,
+  'stream-asset': Tv,
+  'oc-mascot-project': Sparkles,
+  'mutual-creative-collab': Handshake,
+};
+
 function OpenCollabIdeaCard({
   card,
   isActive,
@@ -94,6 +97,7 @@ function OpenCollabIdeaCard({
   isActive: boolean;
   onPropose: () => void;
 }) {
+  const Icon = cardIcons[card.id] || Sparkles;
   return (
     <div
       className={`rounded-[2rem] p-5 transition hover:-translate-y-1 ${
@@ -102,8 +106,16 @@ function OpenCollabIdeaCard({
           : 'glass'
       }`}
     >
-      {/* Image area */}
-      <ImageCarousel images={card.images} />
+      {/* Image area or icon */}
+      {card.images.length > 0 ? (
+        <ImageCarousel images={card.images} />
+      ) : (
+        <div className="flex aspect-[16/11] items-center justify-center rounded-2xl bg-gradient-to-br from-[#f45c9f]/10 via-lavender/20 to-mint/15">
+          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-soft">
+            <Icon className="h-7 w-7 text-[#f45c9f]" />
+          </div>
+        </div>
+      )}
 
       {/* X link at card level if sourceUrl */}
       {card.sourceUrl && (

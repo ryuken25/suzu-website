@@ -140,15 +140,12 @@ function CollabCard({ item, onOpenRequest }: { item: CollabItem; onOpenRequest: 
   const active = media[index % Math.max(1, media.length)];
   const description = item.text.length > 180 ? `${item.text.slice(0, 177)}...` : item.text;
 
-  function openX() {
-    window.open(item.url, '_blank', 'noopener,noreferrer');
-  }
-
   return (
     <article className="group glass relative overflow-hidden rounded-[2rem] p-4 transition duration-300 hover:-translate-y-1 hover:shadow-strong">
-      <button
-        type="button"
-        onClick={openX}
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
         className="relative mb-4 block aspect-square w-full overflow-hidden rounded-[1.5rem] bg-white/60 text-left"
         aria-label="Open verified collab on X"
       >
@@ -168,7 +165,7 @@ function CollabCard({ item, onOpenRequest }: { item: CollabItem; onOpenRequest: 
           <p className="text-xs font-black uppercase tracking-[0.14em] text-pink">Click to open X</p>
           <p className="mt-1 line-clamp-2 text-xs font-bold text-mocha">{description}</p>
         </div>
-      </button>
+      </a>
 
       {media.length > 1 ? (
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -203,9 +200,9 @@ function CollabCard({ item, onOpenRequest }: { item: CollabItem; onOpenRequest: 
       <h3 className="mt-3 font-display text-xl font-black text-ink">Collab reference</h3>
       <p className="mt-2 line-clamp-4 text-sm leading-7 text-mocha">{description}</p>
       <div className="mt-5 flex flex-wrap gap-2">
-        <button type="button" className="suzu-btn-secondary inline-flex" onClick={openX}>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="suzu-btn-secondary inline-flex">
           <ExternalLink className="mr-2 h-4 w-4" /> Open on X
-        </button>
+        </a>
         {active?.url ? (
           <button
             type="button"

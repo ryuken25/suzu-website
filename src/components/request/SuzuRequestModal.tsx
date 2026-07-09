@@ -211,7 +211,7 @@ export function SuzuRequestModal({
             </>
           ) : (
             <div className="grid min-h-0 flex-1 lg:grid-cols-[0.9fr_1.1fr]">
-              <aside className="border-b border-pink/15 bg-gradient-to-b from-blush/20 via-white to-lavender/15 p-5 lg:border-b-0 lg:border-r">
+              <aside className="min-h-0 overflow-y-auto border-b border-pink/15 bg-gradient-to-b from-blush/20 via-white to-lavender/15 p-5 lg:border-b-0 lg:border-r">
                 {isCollab ? (
                   <CollabPreviewCarousel />
                 ) : seed?.selectedArtwork ? (
@@ -620,6 +620,11 @@ function PreviewCard({
 
   return (
     <div className="rounded-[1.5rem] border border-white/70 bg-white/75 p-3 shadow-soft">
+      <div className="mb-3 space-y-1.5 px-1">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-pink">{label}</p>
+        <p className="text-sm font-black">{title}</p>
+        <p className="text-2xl font-black text-pink">{price}</p>
+      </div>
       <div className="relative overflow-hidden rounded-[1.2rem] border border-white/80 bg-gradient-to-br from-white via-[#fff7fb] to-[#f7f0ff]">
         {active ? (
           <div className="relative aspect-[4/5]">
@@ -661,14 +666,11 @@ function PreviewCard({
         ) : null}
       </div>
       <div className="mt-4 space-y-2 px-1">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-pink">{label}</p>
-        <p className="text-sm font-black">{title}</p>
         <div className="rounded-2xl border border-pink/15 bg-[#fff7fb] p-3">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-mocha">Current scope</p>
           <p className="mt-1 text-xl font-black text-pink">{characterText}</p>
           <p className="text-xs font-bold text-mocha">{form.style === 'chibi' ? 'Chibi' : 'Anime'} · {form.crop.replace('-', ' ')} · {form.usage}</p>
         </div>
-        <p className="text-2xl font-black text-pink">{price}</p>
         <p className="text-xs leading-5 text-mocha">
           {note || 'Base estimate updates when style, crop, or character count changes. Final quote depends on complexity and deadline.'}
         </p>
