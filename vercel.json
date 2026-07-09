@@ -1,5 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
-  "regions": ["sin1"],
-  "installCommand": "npm install --ignore-scripts"
+  "nodeVersion": "20.x"
 }
