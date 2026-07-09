@@ -144,7 +144,7 @@ export function getSeedLabel(seed?: RequestSeed | null, form?: RequestFormState)
 }
 
 export function getCommissionEstimateLabel(form: RequestFormState, seed?: RequestSeed | null) {
-  if (seed?.selectedPriceLabel) return seed.selectedPriceLabel;
+  if (seed?.selectedPriceLabel && form.characters === 1) return seed.selectedPriceLabel;
   const est = estimatePrice(form.style, form.crop, form.characters);
   return `${est.priceName} — ${est.label}`;
 }

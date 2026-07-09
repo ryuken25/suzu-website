@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { Palette, Star } from 'lucide-react';
-import { getCollabs } from '@/lib/collabs';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, ExternalLink, Palette, Star } from 'lucide-react';
+import { getCollabs, type CollabItem } from '@/lib/collabs';
 import { getXArt } from '@/lib/x-art';
 import type { RequestSeed } from '@/lib/requestSeed';
 import { buildXArtRequestSeed } from '@/lib/openArtworkRequest';
@@ -105,50 +106,109 @@ export function CollabFeed({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {collabs.map((c) => (
-              <div key={c.id} className="glass rounded-[2rem] p-4">
-                {c.media?.[0]?.url ? (
-                  <div className="relative mb-4 aspect-square overflow-hidden rounded-[1.5rem] bg-white/60">
-                    <Image
-                      src={c.media[0].url}
-                      alt={c.text}
-                      fill
-                      sizes="(max-width:768px) 90vw, 33vw"
-                      className="object-contain p-2"
-                    />
-                  </div>
-                ) : null}
-                <span className="tag">{c.source === 'manual' ? 'Curated Collab' : 'Verified Collab'}</span>
-                <p className="mt-4 line-clamp-4 text-sm leading-7 text-mocha">{c.text}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <a className="suzu-btn-secondary inline-flex" href={c.url} target="_blank" rel="noopener noreferrer">
-                    Open on X
-                  </a>
-                  {c.media?.[0]?.url ? (
-                    <button
-                      type="button"
-                      className="suzu-btn-primary"
-                      onClick={() =>
-                        onOpenRequest(
-                          buildXArtRequestSeed({
-                            id: c.id,
-                            title: 'X Collab Reference',
-                            image: c.media?.[0]?.url || '',
-                            url: c.url,
-                            tags: c.tags,
-                            source: 'collab-feed',
-                          }),
-                        )
-                      }
-                    >
-                      Request similar
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+              <CollabCard key={c.id} item={c} onOpenRequest={onOpenRequest} />
             ))}
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+
+function CollabCard({ item, onOpenRequest }: { item: CollabItem; onOpenRequest: (seed?: RequestSeed) => void }) {
+  const media = item.media || [];
+  const [index, setIndex] = useState(0);
+  const active = media[index % Math.max(1, media.length)];
+  const description = item.text.length > 180 ? `${item.text.slice(0, 177)}...` : item.text;
+
+  function openX() {
+    window.open(item.url, '_blank', 'noopener,noreferrer');
+  }
+
+  return (
+    <article className="group glass relative overflow-hidden rounded-[2rem] p-4 transition duration-300 hover:-translate-y-1 hover:shadow-strong">
+      <button
+        type="button"
+        onClick={openX}
+        className="relative mb-4 block aspect-square w-full overflow-hidden rounded-[1.5rem] bg-white/60 text-left"
+        aria-label="Open verified collab on X"
+      >
+        {active?.url ? (
+          <Image
+            src={active.url}
+            alt={item.text}
+            fill
+            sizes="(max-width:768px) 90vw, 33vw"
+            className="object-contain p-2 transition duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="grid h-full place-items-center p-6 text-center font-black text-mocha">Open on X</div>
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-x-4 bottom-4 translate-y-2 rounded-2xl bg-white/90 p-3 opacity-0 shadow-soft backdrop-blur transition group-hover:translate-y-0 group-hover:opacity-100">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-pink">Click to open X</p>
+          <p className="mt-1 line-clamp-2 text-xs font-bold text-mocha">{description}</p>
+        </div>
+      </button>
+
+      {media.length > 1 ? (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white text-mocha shadow-soft"
+            onClick={() => setIndex((value) => (value - 1 + media.length) % media.length)}
+            aria-label="Previous collab image"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-black text-mocha">
+            {index + 1}/{media.length}
+          </span>
+          <button
+            type="button"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white text-mocha shadow-soft"
+            onClick={() => setIndex((value) => (value + 1) % media.length)}
+            aria-label="Next collab image"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <span className="tag">Verified image collab from X</span>
+        {item.collaborators?.slice(0, 2).map((name) => (
+          <span key={name} className="tag">@{name}</span>
+        ))}
+      </div>
+      <h3 className="mt-3 font-display text-xl font-black text-ink">Collab reference</h3>
+      <p className="mt-2 line-clamp-4 text-sm leading-7 text-mocha">{description}</p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        <button type="button" className="suzu-btn-secondary inline-flex" onClick={openX}>
+          <ExternalLink className="mr-2 h-4 w-4" /> Open on X
+        </button>
+        {active?.url ? (
+          <button
+            type="button"
+            className="suzu-btn-primary"
+            onClick={() =>
+              onOpenRequest(
+                buildXArtRequestSeed({
+                  id: item.id,
+                  title: 'X Collab Reference',
+                  image: active.url,
+                  url: item.url,
+                  tags: item.tags,
+                  source: 'collab-feed',
+                }),
+              )
+            }
+          >
+            Request similar
+          </button>
+        ) : null}
+      </div>
+    </article>
   );
 }

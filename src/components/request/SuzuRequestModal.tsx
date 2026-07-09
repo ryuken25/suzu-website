@@ -4,9 +4,11 @@ import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, ExternalLink, Mail, X } from 'lucide-react';
+import { FaDiscord, FaXTwitter } from 'react-icons/fa6';
 import { OrderChooserPanel } from '@/components/request/OrderChooserPanel';
 import { CollabPreviewCarousel } from '@/components/request/CollabPreviewCarousel';
 import { emitToast } from '@/components/common/ToastHost';
+import { portfolio } from '@/data/portfolio';
 import {
   buildSummary,
   getCommissionEstimateLabel,
@@ -15,7 +17,7 @@ import {
   type RequestFormState,
   type RequestSeed,
 } from '@/lib/requestSeed';
-import { getMailtoUrl, getXContactUrl, suzuContact } from '@/lib/socialLinks';
+import { getDiscordProfileUrl, getMailtoUrl, getXContactUrl, suzuContact } from '@/lib/socialLinks';
 
 const fieldClass =
   'w-full rounded-2xl border border-pink/25 bg-white px-4 py-3 font-semibold outline-none focus:border-pink/50';
@@ -37,6 +39,8 @@ const roles = [
   'Thumbnail art',
   'Discuss together',
 ];
+
+const characterPresets = [1, 2, 3] as const;
 
 export function SuzuRequestModal({
   request,
@@ -125,6 +129,27 @@ export function SuzuRequestModal({
     }
   }
 
+  function setCharacterCount(value: number) {
+    setForm({ ...form, characters: Math.max(1, Math.floor(value || 1)) });
+  }
+
+  function pickContactMethod(method: 'email' | 'x' | 'discord') {
+    if (method === 'email') {
+      setForm({ ...form, contact: suzuContact.email });
+      emitToast('Email selected. You can still edit the contact field.');
+      return;
+    }
+    if (method === 'x') {
+      setForm({ ...form, contact: `X @${suzuContact.xHandle}` });
+      window.open(getXContactUrl(), '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setForm({ ...form, contact: `Discord @${suzuContact.discordUsername}` });
+    navigator.clipboard?.writeText(suzuContact.discordUsername).catch(() => null);
+    emitToast(`Discord username copied: ${suzuContact.discordUsername}`);
+    window.open(getDiscordProfileUrl(), '_blank', 'noopener,noreferrer');
+  }
+
   const headerTitle = isCollab ? 'Tell Suzu about the project' : 'Tell Suzu what you want';
   const headerEyebrow =
     screen === 'chooser'
@@ -186,6 +211,7 @@ export function SuzuRequestModal({
                     price={estimateLabel}
                     image={seed.selectedArtwork.image}
                     tags={seed.selectedArtwork.categories}
+                    form={form}
                   />
                 ) : seed?.selectedPriceId || form.mode === 'pricelist' ? (
                   <PreviewCard
@@ -193,14 +219,16 @@ export function SuzuRequestModal({
                     title={seed?.selectedPriceLabel || 'Anime Half Body'}
                     price={estimateLabel}
                     tags={[form.style, form.crop]}
+                    form={form}
                   />
                 ) : (
                   <PreviewCard
                     label="Custom commission"
-                    title={`${form.style === 'chibi' ? 'Chibi' : 'Anime'} ${form.crop.replace('-', ' ')}`}
+                    title={`${form.characters} character${form.characters > 1 ? 's' : ''} · ${form.style === 'chibi' ? 'Chibi' : 'Anime'} ${form.crop.replace('-', ' ')}`}
                     price={estimateLabel}
                     note="Base estimate per character. Final quote depends on complexity, background, commercial use, and deadline."
                     tags={[form.style, form.crop, `${form.characters} char`]}
+                    form={form}
                   />
                 )}
               </aside>
@@ -231,17 +259,54 @@ export function SuzuRequestModal({
                           <option value="full-body">Full Body</option>
                         </select>
                       </Field>
-                      <Field label="Characters">
-                        <select
-                          className={fieldClass}
-                          value={form.characters}
-                          onChange={(e) => setForm({ ...form, characters: Number(e.target.value) })}
-                        >
-                          <option value={1}>1</option>
-                          <option value={2}>2</option>
-                          <option value={3}>3+</option>
-                        </select>
-                      </Field>
+                      <div className="sm:col-span-2">
+                        <p className="text-sm font-black">Characters</p>
+                        <div className="mt-2 grid grid-cols-4 gap-2">
+                          {characterPresets.map((count) => (
+                            <button
+                              key={count}
+                              type="button"
+                              onClick={() => setCharacterCount(count)}
+                              className={`rounded-2xl border px-3 py-3 text-sm font-black transition ${
+                                form.characters === count
+                                  ? 'border-pink/60 bg-pink/10 text-pink shadow-soft'
+                                  : 'border-pink/15 bg-white/70 text-mocha hover:bg-white'
+                              }`}
+                            >
+                              {count === 3 ? '3+' : count}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setCharacterCount(Math.max(4, form.characters))}
+                            className={`rounded-2xl border px-3 py-3 text-sm font-black transition ${
+                              form.characters > 3
+                                ? 'border-violet/60 bg-lavender/25 text-violet shadow-soft'
+                                : 'border-pink/15 bg-white/70 text-mocha hover:bg-white'
+                            }`}
+                          >
+                            Custom
+                          </button>
+                        </div>
+                        {form.characters > 3 ? (
+                          <div className="mt-3 rounded-2xl border border-violet/20 bg-white/80 p-3">
+                            <label className="text-xs font-black uppercase tracking-[0.14em] text-violet">
+                              Custom character count
+                              <input
+                                type="number"
+                                min={4}
+                                max={20}
+                                className={`${fieldClass} mt-2`}
+                                value={form.characters}
+                                onChange={(e) => setCharacterCount(Number(e.target.value))}
+                              />
+                            </label>
+                            <p className="mt-2 text-xs leading-5 text-mocha">
+                              For 4+ characters, the left estimate updates instantly. Final quote may be adjusted for composition complexity.
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
                       <Field label="Background">
                         <select
                           className={fieldClass}
@@ -348,6 +413,32 @@ export function SuzuRequestModal({
                           onChange={(e) => setForm({ ...form, contact: e.target.value })}
                           placeholder="Email / Discord / X"
                         />
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => pickContactMethod('email')}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-pink/20 bg-white/80 px-4 py-2 text-xs font-black text-mocha shadow-soft transition hover:-translate-y-0.5 hover:bg-[#fff0f7]"
+                            title={suzuContact.email}
+                          >
+                            <Mail className="h-4 w-4 text-pink" /> Email
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => pickContactMethod('x')}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-pink/20 bg-white/80 px-4 py-2 text-xs font-black text-mocha shadow-soft transition hover:-translate-y-0.5 hover:bg-[#fff0f7]"
+                            title={`X @${suzuContact.xHandle}`}
+                          >
+                            <FaXTwitter className="h-4 w-4" /> X DM
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => pickContactMethod('discord')}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#5865F2]/20 bg-white/80 px-4 py-2 text-xs font-black text-mocha shadow-soft transition hover:-translate-y-0.5 hover:bg-[#f7f0ff]"
+                            title={`Discord @${suzuContact.discordUsername}`}
+                          >
+                            <FaDiscord className="h-4 w-4 text-[#5865F2]" /> Discord
+                          </button>
+                        </div>
                       </Field>
                       <Field label="Deadline (optional)" className="sm:col-span-2">
                         <input
@@ -485,6 +576,7 @@ function PreviewCard({
   note,
   image,
   tags = [],
+  form,
 }: {
   label: string;
   title: string;
@@ -492,31 +584,81 @@ function PreviewCard({
   note?: string;
   image?: string;
   tags?: string[];
+  form: RequestFormState;
 }) {
+  const examples = useMemo(() => {
+    const preferred = portfolio.filter((item) => {
+      const isChibi = item.categories.includes('chibi');
+      const styleMatch = form.style === 'chibi' ? isChibi : !isChibi;
+      const coupleMatch = form.characters >= 2 ? item.categories.includes('couple') : true;
+      return styleMatch && coupleMatch;
+    });
+    const fallback = portfolio.filter((item) => (form.style === 'chibi' ? item.categories.includes('chibi') : item.categories.includes('normal')));
+    const rows = [...preferred, ...fallback].filter((item, index, arr) => arr.findIndex((x) => x.id === item.id) === index).slice(0, 5);
+    return image
+      ? [{ id: 'selected', title, file: image, alt: title }, ...rows.map((item) => ({ id: item.id, title: item.title, file: item.file, alt: item.alt }))]
+      : rows.map((item) => ({ id: item.id, title: item.title, file: item.file, alt: item.alt }));
+  }, [form.characters, form.style, image, title]);
+  const [index, setIndex] = useState(0);
+  const active = examples[index % Math.max(1, examples.length)];
+  const characterText = `${form.characters} character${form.characters > 1 ? 's' : ''}`;
+
   return (
     <div className="rounded-[1.5rem] border border-white/70 bg-white/75 p-3 shadow-soft">
-      {image ? (
-        <Image
-          src={image}
-          alt={title}
-          width={720}
-          height={900}
-          className="max-h-[42svh] w-full rounded-[1.2rem] object-contain lg:max-h-[48svh]"
-        />
-      ) : (
-        <div className="grid aspect-[4/5] place-items-center rounded-[1.2rem] bg-gradient-to-br from-blush/40 to-lavender/40 p-6 text-center">
-          <p className="font-display text-2xl font-black">{title}</p>
-        </div>
-      )}
+      <div className="relative overflow-hidden rounded-[1.2rem] border border-white/80 bg-gradient-to-br from-white via-[#fff7fb] to-[#f7f0ff]">
+        {active ? (
+          <div className="relative aspect-[4/5]">
+            <Image
+              src={active.file}
+              alt={active.alt}
+              fill
+              sizes="(max-width:1024px) 90vw, 360px"
+              className="object-contain p-3"
+            />
+          </div>
+        ) : (
+          <div className="grid aspect-[4/5] place-items-center p-6 text-center">
+            <p className="font-display text-2xl font-black">{title}</p>
+          </div>
+        )}
+        {examples.length > 1 ? (
+          <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-sm font-black shadow-soft"
+              onClick={() => setIndex((value) => (value - 1 + examples.length) % examples.length)}
+              aria-label="Previous preview example"
+            >
+              ‹
+            </button>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-black text-mocha shadow-soft">
+              {index + 1}/{examples.length}
+            </span>
+            <button
+              type="button"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-sm font-black shadow-soft"
+              onClick={() => setIndex((value) => (value + 1) % examples.length)}
+              aria-label="Next preview example"
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
+      </div>
       <div className="mt-4 space-y-2 px-1">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-pink">{label}</p>
         <p className="text-sm font-black">{title}</p>
+        <div className="rounded-2xl border border-pink/15 bg-[#fff7fb] p-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-mocha">Current scope</p>
+          <p className="mt-1 text-xl font-black text-pink">{characterText}</p>
+          <p className="text-xs font-bold text-mocha">{form.style === 'chibi' ? 'Chibi' : 'Anime'} · {form.crop.replace('-', ' ')} · {form.usage}</p>
+        </div>
         <p className="text-2xl font-black text-pink">{price}</p>
         <p className="text-xs leading-5 text-mocha">
-          {note || 'Base estimate per character. Final quote depends on complexity, background, commercial use, and deadline.'}
+          {note || 'Base estimate updates when style, crop, or character count changes. Final quote depends on complexity and deadline.'}
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          {tags.map((t) => (
+          {[...tags, characterText].map((t) => (
             <span key={t} className="tag">
               {t}
             </span>
