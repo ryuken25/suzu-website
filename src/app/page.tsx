@@ -107,7 +107,7 @@ export default function Home() {
       <ContactSection onOpenRequest={(seed) => setRequest(seed || { type: 'commission', mode: 'custom', source: 'contact' })} />
 
       <footer className="border-t border-pink/20 py-8 text-center text-sm font-bold text-mocha">
-        © Pesona Suzu Art Studio — soft anime & chibi illustration.
+        © Suzu Art Studio — soft anime & chibi illustration.
       </footer>
 
       <SuzuRequestModal request={request} onClose={() => setRequest(null)} />

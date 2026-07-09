@@ -207,7 +207,7 @@ export function buildSummary(input: {
 }) {
   const isCollab = input.type === 'collab';
   return [
-    'Pesona Suzu Request',
+    'Suzu Art Studio Request',
     `Type: ${isCollab ? 'Collab proposal' : 'Commission'}`,
     `Mode: ${input.mode}`,
     `Name/handle: ${input.name}`,

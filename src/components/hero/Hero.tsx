@@ -28,7 +28,7 @@ export function Hero({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) =>
           </div>
           <p className="eyebrow mt-5">Pastel Bell Atelier</p>
           <h1 className="mt-3 font-display text-[clamp(2.8rem,7.5vw,6.6rem)] font-black leading-[0.9] tracking-[-0.05em]">
-            Pesona Suzu <span className="text-pink">Art Studio</span>
+            Suzu <span className="text-pink">Art Studio</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-8 text-mocha sm:text-lg">
             Soft anime and chibi illustration for personal gifts, profile icons, couple moments, and creator collaborations.

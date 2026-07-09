@@ -89,7 +89,7 @@ export function SuzuRequestModal({
     estimateLabel: isCollab ? 'Quote after scope check' : estimateLabel,
   });
 
-  const subject = isCollab ? 'Pesona Suzu Collab Proposal' : 'Pesona Suzu Commission Request';
+  const subject = isCollab ? 'Suzu Art Studio Collab Proposal' : 'Suzu Art Studio Commission Request';
 
   function choose(next: RequestSeed) {
     setSeed(next);

@@ -16,11 +16,11 @@ const body = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://suzu-comms.vercel.app'),
-  title: 'Pesona Suzu Art Studio - Anime & Chibi Illustration',
+  title: 'Suzu Art Studio - Anime & Chibi Illustration',
   description:
-    'Soft anime and chibi illustration portfolio, commission pricing, and open creative collaboration hub by Pesona Suzu.',
+    'Soft anime and chibi illustration portfolio, commission pricing, and open creative collaboration hub by Suzu Art Studio.',
   keywords: [
-    'Pesona Suzu',
+    'Suzu Art Studio',
     'Suzu',
     'anime commission',
     'chibi commission',
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
     'collab art',
   ],
   openGraph: {
-    title: 'Pesona Suzu — Pastel Bell Atelier',
+    title: 'Suzu Art Studio — Pastel Bell Atelier',
     description: 'Anime & chibi commissions, portfolio story, pricing, and open collab.',
     url: 'https://suzu-comms.vercel.app',
-    siteName: 'Pesona Suzu',
+    siteName: 'Suzu Art Studio',
     images: [
       {
         url: '/suzu/portfolio/webp/shemmi.webp',
         width: 1200,
         height: 1600,
-        alt: 'Pesona Suzu featured artwork',
+        alt: 'Suzu Art Studio featured artwork',
       },
     ],
   },
