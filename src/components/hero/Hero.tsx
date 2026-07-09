@@ -36,7 +36,19 @@ export function Hero({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) =>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <button
-              onClick={() => onOpenRequest({ type: 'commission', source: 'hero' })}
+              onClick={() =>
+                onOpenRequest({
+                  type: 'commission',
+                  mode: 'custom',
+                  source: 'hero',
+                  style: 'anime',
+                  crop: 'half-body',
+                  characters: 1,
+                  selectedPriceId: 'anime-half-body',
+                  selectedPriceLabel: 'Anime Half Body — IDR 100k / $25',
+                  skipTypeStep: true,
+                })
+              }
               className="suzu-btn-primary"
             >
               Open Commission

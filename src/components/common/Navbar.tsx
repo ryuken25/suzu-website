@@ -61,10 +61,17 @@ export function Navbar({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) 
             ))}
           </div>
           <button
-            onClick={() => onOpenRequest({ type: 'commission', source: 'hero' })}
+            onClick={() =>
+              onOpenRequest({
+                type: 'commission',
+                mode: 'order-chooser',
+                source: 'navbar-order',
+                skipTypeStep: false,
+              })
+            }
             className="suzu-btn-primary px-5 py-2.5"
           >
-            Open / Order
+            Order
           </button>
         </div>
       </nav>
@@ -98,8 +105,18 @@ export function Navbar({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) 
       )}
 
       <div className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-3 gap-2 rounded-3xl border border-pink/25 bg-white/90 p-2 shadow-soft backdrop-blur-xl md:hidden">
-        <button onClick={() => onOpenRequest({ type: 'commission', source: 'hero' })} className="suzu-btn-primary px-2 py-2 text-xs">
-          Open
+        <button
+          onClick={() =>
+            onOpenRequest({
+              type: 'commission',
+              mode: 'order-chooser',
+              source: 'navbar-order',
+              skipTypeStep: false,
+            })
+          }
+          className="suzu-btn-primary px-2 py-2 text-xs"
+        >
+          Order
         </button>
         <button onClick={() => scrollToSection('portfolio')} className="suzu-btn-secondary px-2 py-2 text-xs">
           Portfolio

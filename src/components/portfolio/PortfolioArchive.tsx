@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { portfolio, portfolioTabs, type PortfolioCategory, type PortfolioItem } from '@/data/portfolio';
 import type { RequestSeed } from '@/lib/requestSeed';
+import { buildArtworkRequestSeed } from '@/lib/openArtworkRequest';
 import { cn } from '@/lib/utils';
 
 export function PortfolioArchive({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) => void }) {
@@ -14,23 +15,7 @@ export function PortfolioArchive({ onOpenRequest }: { onOpenRequest: (seed?: Req
   );
 
   function openItem(item: PortfolioItem) {
-    onOpenRequest({
-      type: 'commission',
-      source: 'portfolio-grid',
-      style: item.categories.includes('chibi')
-        ? 'chibi'
-        : item.categories.includes('couple')
-          ? 'couple'
-          : item.categories.includes('collab-ready')
-            ? 'collab-asset'
-            : 'anime',
-      characters: item.categories.includes('couple') ? 2 : 1,
-      selectedArtwork: {
-        title: item.title,
-        image: item.file,
-        categories: item.categories,
-      },
-    });
+    onOpenRequest(buildArtworkRequestSeed(item, 'portfolio-grid'));
   }
 
   return (

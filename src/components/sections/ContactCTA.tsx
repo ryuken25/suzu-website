@@ -17,13 +17,29 @@ export function ContactCTA({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <button
-              onClick={() => onOpenRequest({ type: 'commission', source: 'contact' })}
+              onClick={() => onOpenRequest({
+                type: 'commission',
+                mode: 'custom',
+                source: 'contact',
+                style: 'anime',
+                crop: 'half-body',
+                characters: 1,
+                selectedPriceId: 'anime-half-body',
+                selectedPriceLabel: 'Anime Half Body — IDR 100k / $25',
+                skipTypeStep: true,
+              })}
               className="inline-flex min-h-12 items-center rounded-full bg-white px-6 py-3 font-black text-ink shadow-soft"
             >
               <Mail className="mr-2 h-4 w-4" /> Open Commission
             </button>
             <button
-              onClick={() => onOpenRequest({ type: 'collab', source: 'contact', style: 'collab-asset' })}
+              onClick={() => onOpenRequest({
+                type: 'collab',
+                mode: 'collab-proposal',
+                source: 'open-collab',
+                usage: 'collab project',
+                skipTypeStep: true,
+              })}
               className="inline-flex min-h-12 items-center rounded-full border border-white/60 bg-white/15 px-6 py-3 font-black text-white backdrop-blur"
             >
               <MessageCircle className="mr-2 h-4 w-4" /> Propose Collab

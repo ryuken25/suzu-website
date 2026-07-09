@@ -4,19 +4,39 @@ import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, ExternalLink, Mail, X } from 'lucide-react';
-import type { RequestSeed } from '@/lib/requestSeed';
-import { buildSummary } from '@/lib/requestSeed';
-import { estimatePrice, type CropKind, type StyleKind } from '@/lib/priceEstimate';
-import { gmailComposeUrl, mailtoUrl } from '@/lib/utils';
-
-const contact = {
-  email: 'mysuzuverse@gmail.com',
-  x: 'https://x.com/ssuzudayo',
-  discord: '@suzuuv',
-};
+import { OrderChooserPanel } from '@/components/request/OrderChooserPanel';
+import { CollabPreviewCarousel } from '@/components/request/CollabPreviewCarousel';
+import { emitToast } from '@/components/common/ToastHost';
+import {
+  buildSummary,
+  getCommissionEstimateLabel,
+  getMissingFields,
+  inferScopeFromSeed,
+  type RequestFormState,
+  type RequestSeed,
+} from '@/lib/requestSeed';
+import { getMailtoUrl, getXContactUrl, suzuContact } from '@/lib/socialLinks';
 
 const fieldClass =
   'w-full rounded-2xl border border-pink/25 bg-white px-4 py-3 font-semibold outline-none focus:border-pink/50';
+
+const projectTypes = [
+  'Cover / MV visual',
+  'Stream asset',
+  'Creator promo',
+  'Character project',
+  'Thumbnail / visualizer',
+  'Other',
+];
+
+const roles = [
+  'Illustration',
+  'Chibi asset',
+  'Character visual',
+  'Promo art',
+  'Thumbnail art',
+  'Discuss together',
+];
 
 export function SuzuRequestModal({
   request,
@@ -25,52 +45,22 @@ export function SuzuRequestModal({
   request: RequestSeed | null;
   onClose: () => void;
 }) {
+  const startsAsChooser = request?.mode === 'order-chooser' && request?.source === 'navbar-order';
+  const [screen, setScreen] = useState<'chooser' | 'form'>(startsAsChooser ? 'chooser' : 'form');
   const [step, setStep] = useState(1);
+  const [seed, setSeed] = useState<RequestSeed | null>(request);
+  const [form, setForm] = useState<RequestFormState>(inferScopeFromSeed(request));
   const [copied, setCopied] = useState(false);
-  const [form, setForm] = useState({
-    type: 'commission',
-    style: 'anime' as StyleKind | 'couple' | 'collab-asset',
-    crop: 'half-body' as CropKind,
-    characters: 1,
-    background: 'none/simple',
-    usage: 'personal',
-    name: '',
-    contact: '',
-    deadline: '',
-    brief: '',
-    references: '',
-    notes: '',
-  });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!request) return;
+    const isChooser = request.mode === 'order-chooser' && request.source === 'navbar-order';
+    setScreen(isChooser ? 'chooser' : 'form');
     setStep(1);
-    const style =
-      request.style === 'chibi'
-        ? 'chibi'
-        : request.style === 'couple'
-          ? 'couple'
-          : request.style === 'collab-asset'
-            ? 'collab-asset'
-            : 'anime';
-    setForm((f) => ({
-      ...f,
-      type:
-        request.type ||
-        (request.source === 'open-collab' || request.source === 'collab-feed' ? 'collab' : 'commission'),
-      style,
-      crop: request.crop || (style === 'chibi' ? 'headshot' : 'half-body'),
-      characters: request.characters || (style === 'couple' ? 2 : 1),
-      usage:
-        request.source === 'open-collab'
-          ? request.collabType?.includes('Cover')
-            ? 'cover/MV'
-            : request.collabType?.includes('Stream')
-              ? 'stream asset'
-              : 'collab project'
-          : f.usage,
-      notes: request.collabType ? `Collab type: ${request.collabType}` : '',
-    }));
+    setSeed(request);
+    setForm(inferScopeFromSeed(request));
+    setError(null);
   }, [request]);
 
   useEffect(() => {
@@ -82,45 +72,66 @@ export function SuzuRequestModal({
     };
   }, [request]);
 
-  const estimateStyle: StyleKind = form.style === 'chibi' ? 'chibi' : 'anime';
-  const estimateCrop: CropKind =
-    form.style === 'chibi' && form.crop === 'bust-up'
-      ? 'headshot'
-      : form.crop === 'headshot' && form.style !== 'chibi'
-        ? 'bust-up'
-        : form.crop;
-  const estimate = useMemo(
-    () => estimatePrice(estimateStyle, estimateCrop, form.characters),
-    [estimateStyle, estimateCrop, form.characters],
-  );
+  const estimateLabel = useMemo(() => getCommissionEstimateLabel(form, seed), [form, seed]);
+  const isCollab = form.type === 'collab';
+  const totalSteps = 3;
 
   if (!request) return null;
 
   const summary = buildSummary({
-    type: form.type,
-    name: form.name,
-    contact: form.contact,
-    style: form.style,
-    crop: form.crop,
-    characters: form.characters,
-    background: form.background,
-    usage: form.usage,
-    deadline: form.deadline,
-    selectedTitle: request.selectedArtwork?.title,
-    estimateLabel: estimate.label,
-    brief: form.brief,
-    references: form.references,
-    notes: form.notes,
+    ...form,
+    selectedTitle: seed?.selectedArtwork?.title,
+    selectedUrl: seed?.selectedArtwork?.sourceUrl,
+    estimateLabel: isCollab ? 'Quote after scope check' : estimateLabel,
   });
-  const subject = `Pesona Suzu ${form.type} request`;
 
-  const copy = async () => {
+  const subject = isCollab ? 'Pesona Suzu Collab Proposal' : 'Pesona Suzu Commission Request';
+
+  function choose(next: RequestSeed) {
+    setSeed(next);
+    setForm(inferScopeFromSeed(next));
+    setScreen('form');
+    setStep(1);
+    setError(null);
+  }
+
+  function goNext() {
+    const missing = getMissingFields(step, form);
+    if (missing.length) {
+      setError(`Please fill: ${missing.join(', ')}`);
+      return;
+    }
+    setError(null);
+    setStep((s) => Math.min(totalSteps, s + 1));
+  }
+
+  async function copySummary() {
     try {
       await navigator.clipboard.writeText(summary);
       setCopied(true);
+      emitToast('Copied! Send this to Suzu via email, X DM, or Discord.');
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
-  };
+    } catch {
+      emitToast('Could not copy. Select and copy manually.');
+    }
+  }
+
+  async function copyDiscord() {
+    try {
+      await navigator.clipboard.writeText(`@${suzuContact.discordUsername}\n\n${summary}`);
+      emitToast('Copied Discord username + summary. Paste it into Discord DM/Add Friend.');
+    } catch {
+      emitToast(`Discord: @${suzuContact.discordUsername}`);
+    }
+  }
+
+  const headerTitle = isCollab ? 'Tell Suzu about the project' : 'Tell Suzu what you want';
+  const headerEyebrow =
+    screen === 'chooser'
+      ? 'Order chooser'
+      : isCollab
+        ? `Collab proposal · Step ${step}/${totalSteps}`
+        : `Request wizard · Step ${step}/${totalSteps}`;
 
   return (
     <AnimatePresence>
@@ -136,282 +147,382 @@ export function SuzuRequestModal({
           initial={{ y: 40, opacity: 0, scale: 0.98 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 30, opacity: 0 }}
-          className="flex max-h-[92svh] w-full max-w-5xl flex-col overflow-hidden rounded-t-[2rem] bg-white shadow-strong sm:rounded-[2rem]"
+          className="flex max-h-[92svh] w-full max-w-5xl flex-col overflow-hidden rounded-t-[2rem] bg-white/95 shadow-strong sm:rounded-[2rem]"
         >
-          <div className="flex items-center justify-between border-b border-pink/15 px-5 py-4">
-            <div>
-              <p className="eyebrow">Request wizard · Step {step}/4</p>
-              <h3 className="font-display text-2xl font-black sm:text-3xl">Tell Suzu what you want</h3>
+          <header className="shrink-0 border-b border-[#f45c9f]/15 p-5 sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow">{headerEyebrow}</p>
+                <h3 className="mt-1 font-display text-2xl font-black sm:text-3xl">
+                  {screen === 'chooser' ? 'What do you want to start?' : headerTitle}
+                </h3>
+              </div>
+              <button type="button" onClick={onClose} className="rounded-full bg-pink/10 p-2" aria-label="Close">
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <button onClick={onClose} className="rounded-full bg-pink/10 p-2" type="button">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+          </header>
 
-          <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[0.9fr_1.1fr]">
-            <aside className="border-b border-pink/15 bg-gradient-to-b from-blush/25 via-white to-lavender/20 p-5 lg:border-b-0 lg:border-r">
-              <div className="overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/70 p-2 shadow-soft">
-                {request.selectedArtwork ? (
-                  <Image
-                    src={request.selectedArtwork.image}
-                    alt={request.selectedArtwork.title}
-                    width={720}
-                    height={900}
-                    className="max-h-[42svh] w-full rounded-[1.2rem] object-contain lg:max-h-[52svh]"
+          {screen === 'chooser' ? (
+            <>
+              <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+                <OrderChooserPanel onChoose={choose} />
+              </div>
+              <footer className="sticky bottom-0 z-10 shrink-0 border-t border-[#f45c9f]/15 bg-white/90 p-4 backdrop-blur-xl sm:p-5">
+                <button type="button" className="suzu-btn-secondary" onClick={onClose}>
+                  Close
+                </button>
+              </footer>
+            </>
+          ) : (
+            <div className="grid min-h-0 flex-1 lg:grid-cols-[0.9fr_1.1fr]">
+              <aside className="border-b border-pink/15 bg-gradient-to-b from-blush/20 via-white to-lavender/15 p-5 lg:border-b-0 lg:border-r">
+                {isCollab ? (
+                  <CollabPreviewCarousel />
+                ) : seed?.selectedArtwork ? (
+                  <PreviewCard
+                    label="Selected sample"
+                    title={seed.selectedArtwork.title}
+                    price={estimateLabel}
+                    image={seed.selectedArtwork.image}
+                    tags={seed.selectedArtwork.categories}
+                  />
+                ) : seed?.selectedPriceId || form.mode === 'pricelist' ? (
+                  <PreviewCard
+                    label="Selected from pricelist"
+                    title={seed?.selectedPriceLabel || 'Anime Half Body'}
+                    price={estimateLabel}
+                    tags={[form.style, form.crop]}
                   />
                 ) : (
-                  <div className="grid aspect-[4/5] place-items-center rounded-[1.2rem] bg-gradient-to-br from-blush/40 to-lavender/40 p-6 text-center">
-                    <p className="font-display text-2xl font-black">No sample selected</p>
-                    <p className="mt-2 text-sm text-mocha">You can still request a style from scratch.</p>
-                  </div>
+                  <PreviewCard
+                    label="Custom commission"
+                    title={`${form.style === 'chibi' ? 'Chibi' : 'Anime'} ${form.crop.replace('-', ' ')}`}
+                    price={estimateLabel}
+                    note="Base estimate per character. Final quote depends on complexity, background, commercial use, and deadline."
+                    tags={[form.style, form.crop, `${form.characters} char`]}
+                  />
                 )}
-              </div>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-black">{request.selectedArtwork?.title || 'Custom request'}</p>
-                <p className="text-2xl font-black text-pink">{estimate.label}</p>
-                <p className="text-xs leading-5 text-mocha">{estimate.note}</p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {(request.selectedArtwork?.categories || [form.style]).map((c) => (
-                    <span key={c} className="tag">
-                      {c}
-                    </span>
-                  ))}
-                </div>
-                <div className="pt-2 text-sm font-bold text-mocha">
-                  <p>{contact.email}</p>
-                  <p>X @ssuzudayo · Discord {contact.discord}</p>
-                </div>
-              </div>
-            </aside>
+              </aside>
 
-            <div className="flex min-h-0 flex-col p-5">
-              {step === 1 && (
-                <div className="space-y-3">
-                  <p className="font-black">Choose request type</p>
-                  {[
-                    ['commission', 'Commission'],
-                    ['collab', 'Collab proposal'],
-                    ['availability', 'Availability question'],
-                  ].map(([v, label]) => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setForm({ ...form, type: v })}
-                      className={`w-full rounded-2xl border px-4 py-4 text-left font-bold ${
-                        form.type === v ? 'border-pink/45 bg-pink/10' : 'border-pink/15 bg-white'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="flex min-h-0 flex-col">
+                <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+                  {step === 1 && !isCollab && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field label="Style">
+                        <select
+                          className={fieldClass}
+                          value={form.style}
+                          onChange={(e) => setForm({ ...form, style: e.target.value as RequestFormState['style'] })}
+                        >
+                          <option value="anime">Anime</option>
+                          <option value="chibi">Chibi</option>
+                        </select>
+                      </Field>
+                      <Field label="Crop">
+                        <select
+                          className={fieldClass}
+                          value={form.crop}
+                          onChange={(e) => setForm({ ...form, crop: e.target.value as RequestFormState['crop'] })}
+                        >
+                          <option value="headshot">Headshot</option>
+                          <option value="bust-up">Bust Up</option>
+                          <option value="half-body">Half Body</option>
+                          <option value="full-body">Full Body</option>
+                        </select>
+                      </Field>
+                      <Field label="Characters">
+                        <select
+                          className={fieldClass}
+                          value={form.characters}
+                          onChange={(e) => setForm({ ...form, characters: Number(e.target.value) })}
+                        >
+                          <option value={1}>1</option>
+                          <option value={2}>2</option>
+                          <option value={3}>3+</option>
+                        </select>
+                      </Field>
+                      <Field label="Background">
+                        <select
+                          className={fieldClass}
+                          value={form.background}
+                          onChange={(e) => setForm({ ...form, background: e.target.value })}
+                        >
+                          <option value="none/simple">None / simple</option>
+                          <option value="soft scene">Soft scene</option>
+                          <option value="discuss">Discuss</option>
+                        </select>
+                      </Field>
+                      <Field label="Usage" className="sm:col-span-2">
+                        <select
+                          className={fieldClass}
+                          value={form.usage}
+                          onChange={(e) => setForm({ ...form, usage: e.target.value })}
+                        >
+                          <option value="personal">Personal</option>
+                          <option value="commercial">Commercial</option>
+                          <option value="cover/MV">Cover / MV</option>
+                          <option value="stream asset">Stream asset</option>
+                        </select>
+                      </Field>
+                    </div>
+                  )}
 
-              {step === 2 && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm font-black">
-                    Style
-                    <select
-                      className={`${fieldClass} mt-1`}
-                      value={form.style}
-                      onChange={(e) => setForm({ ...form, style: e.target.value as typeof form.style })}
-                    >
-                      <option value="anime">Anime</option>
-                      <option value="chibi">Chibi</option>
-                      <option value="couple">Couple</option>
-                      <option value="collab-asset">Collab Asset</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-black">
-                    Crop
-                    <select
-                      className={`${fieldClass} mt-1`}
-                      value={form.crop}
-                      onChange={(e) => setForm({ ...form, crop: e.target.value as CropKind })}
-                    >
-                      <option value="headshot">Headshot</option>
-                      <option value="bust-up">Bust Up</option>
-                      <option value="half-body">Half Body</option>
-                      <option value="full-body">Full Body</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-black">
-                    Characters
-                    <select
-                      className={`${fieldClass} mt-1`}
-                      value={form.characters}
-                      onChange={(e) => setForm({ ...form, characters: Number(e.target.value) })}
-                    >
-                      <option value={1}>1</option>
-                      <option value={2}>2</option>
-                      <option value={3}>3+</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-black">
-                    Background
-                    <select
-                      className={`${fieldClass} mt-1`}
-                      value={form.background}
-                      onChange={(e) => setForm({ ...form, background: e.target.value })}
-                    >
-                      <option value="none/simple">None / simple</option>
-                      <option value="soft scene">Soft scene</option>
-                      <option value="discuss">Discuss</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-black sm:col-span-2">
-                    Usage
-                    <select
-                      className={`${fieldClass} mt-1`}
-                      value={form.usage}
-                      onChange={(e) => setForm({ ...form, usage: e.target.value })}
-                    >
-                      <option value="personal">Personal</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="cover/MV">Cover / MV</option>
-                      <option value="stream asset">Stream asset</option>
-                      <option value="collab project">Collab project</option>
-                    </select>
-                  </label>
-                </div>
-              )}
+                  {step === 1 && isCollab && (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="mb-2 text-sm font-black">Project type</p>
+                        <div className="flex flex-wrap gap-2">
+                          {projectTypes.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => setForm({ ...form, projectType: p, usage: form.usage || p })}
+                              className={`rounded-full px-3 py-2 text-xs font-black ${
+                                form.projectType === p ? 'bg-pink text-white' : 'bg-pink/10 text-mocha'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="mb-2 text-sm font-black">Suzu&apos;s role</p>
+                        <div className="flex flex-wrap gap-2">
+                          {roles.map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => setForm({ ...form, projectRole: r })}
+                              className={`rounded-full px-3 py-2 text-xs font-black ${
+                                form.projectRole === r ? 'bg-violet text-white' : 'bg-lavender/30 text-mocha'
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <Field label="Usage / where it will be used">
+                        <input
+                          className={fieldClass}
+                          value={form.usage}
+                          onChange={(e) => setForm({ ...form, usage: e.target.value })}
+                          placeholder="cover/MV, stream, promo, etc."
+                        />
+                      </Field>
+                      <Field label="Project brief">
+                        <textarea
+                          className={`${fieldClass} min-h-28`}
+                          value={form.brief}
+                          onChange={(e) => setForm({ ...form, brief: e.target.value })}
+                          placeholder="What is the project and what should Suzu make?"
+                        />
+                      </Field>
+                      <Field label="Budget / value exchange (optional)">
+                        <input
+                          className={fieldClass}
+                          value={form.notes}
+                          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                          placeholder="Paid scope, art trade, shared promo, revenue split, or discuss."
+                        />
+                      </Field>
+                    </div>
+                  )}
 
-              {step === 3 && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm font-black">
-                    Name / handle
-                    <input
-                      className={`${fieldClass} mt-1`}
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Your name or handle"
-                    />
-                  </label>
-                  <label className="text-sm font-black">
-                    Contact method
-                    <input
-                      className={`${fieldClass} mt-1`}
-                      value={form.contact}
-                      onChange={(e) => setForm({ ...form, contact: e.target.value })}
-                      placeholder="Email / Discord / X"
-                    />
-                  </label>
-                  <label className="text-sm font-black sm:col-span-2">
-                    Deadline
-                    <input
-                      className={`${fieldClass} mt-1`}
-                      value={form.deadline}
-                      onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-                      placeholder="Launch / deadline"
-                    />
-                  </label>
-                  <label className="text-sm font-black sm:col-span-2">
-                    Brief
-                    <textarea
-                      className={`${fieldClass} mt-1 min-h-28`}
-                      value={form.brief}
-                      onChange={(e) => setForm({ ...form, brief: e.target.value })}
-                      placeholder="What do you want Suzu to make?"
-                    />
-                  </label>
-                  <label className="text-sm font-black sm:col-span-2">
-                    Reference links
-                    <textarea
-                      className={`${fieldClass} mt-1 min-h-20`}
-                      value={form.references}
-                      onChange={(e) => setForm({ ...form, references: e.target.value })}
-                      placeholder="Drive / Pinterest / X links"
-                    />
-                  </label>
-                  <label className="text-sm font-black sm:col-span-2">
-                    Notes
-                    <textarea
-                      className={`${fieldClass} mt-1 min-h-20`}
-                      value={form.notes}
-                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                      placeholder="Budget, credit, private use, etc."
-                    />
-                  </label>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-pink/20 bg-pink/5 p-4">
-                    <p className="text-sm font-black">Review summary</p>
-                    <pre className="mt-3 whitespace-pre-wrap text-xs leading-5 text-mocha">{summary}</pre>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={copy} className="suzu-btn-secondary">
-                      {copied ? (
-                        <>
-                          <Check className="mr-2 h-4 w-4" /> Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="mr-2 h-4 w-4" /> Copy Summary
-                        </>
+                  {step === 2 && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field label="Name / handle">
+                        <input
+                          className={fieldClass}
+                          value={form.name}
+                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          placeholder="Your name or handle"
+                        />
+                      </Field>
+                      <Field label="Contact method">
+                        <input
+                          className={fieldClass}
+                          value={form.contact}
+                          onChange={(e) => setForm({ ...form, contact: e.target.value })}
+                          placeholder="Email / Discord / X"
+                        />
+                      </Field>
+                      <Field label="Deadline (optional)" className="sm:col-span-2">
+                        <input
+                          className={fieldClass}
+                          value={form.deadline}
+                          onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                          placeholder="Flexible / launch date"
+                        />
+                      </Field>
+                      {!isCollab && (
+                        <Field label="Brief / what you want" className="sm:col-span-2">
+                          <textarea
+                            className={`${fieldClass} min-h-28`}
+                            value={form.brief}
+                            onChange={(e) => setForm({ ...form, brief: e.target.value })}
+                            placeholder="Describe the character, mood, pose, and goal."
+                          />
+                        </Field>
                       )}
-                    </button>
-                    <a
-                      className="suzu-btn-primary"
-                      href={gmailComposeUrl(subject, summary)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Mail className="mr-2 h-4 w-4" /> Open in Gmail
-                    </a>
-                    <a className="suzu-btn-secondary" href={mailtoUrl(subject, summary)}>
-                      Open Email App
-                    </a>
-                    <a className="suzu-btn-secondary" href={contact.x} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-4 w-4" /> DM on X
-                    </a>
-                    <button
-                      type="button"
-                      className="suzu-btn-secondary"
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(contact.discord);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
-                        } catch {}
-                      }}
-                    >
-                      Copy Discord
-                    </button>
-                  </div>
-                  <p className="text-xs text-mocha">
-                    Gmail opens gmail.com compose if you are logged in. If not, use Email App or Copy Summary. No SMTP required.
-                  </p>
-                </div>
-              )}
+                      <Field label="Reference links (optional)" className="sm:col-span-2">
+                        <textarea
+                          className={`${fieldClass} min-h-20`}
+                          value={form.references}
+                          onChange={(e) => setForm({ ...form, references: e.target.value })}
+                          placeholder="Drive / Pinterest / X links"
+                        />
+                      </Field>
+                      {!isCollab && (
+                        <Field label="Notes (optional)" className="sm:col-span-2">
+                          <textarea
+                            className={`${fieldClass} min-h-20`}
+                            value={form.notes}
+                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                            placeholder="Budget notes, private use, credit preference..."
+                          />
+                        </Field>
+                      )}
+                    </div>
+                  )}
 
-              <div className="mt-auto flex flex-wrap gap-2 border-t border-pink/15 pt-4">
-                {step > 1 && (
-                  <button type="button" className="suzu-btn-secondary" onClick={() => setStep((s) => Math.max(1, s - 1))}>
-                    Back
-                  </button>
-                )}
-                {step < 4 ? (
-                  <button type="button" className="suzu-btn-primary" onClick={() => setStep((s) => Math.min(4, s + 1))}>
-                    Next
-                  </button>
-                ) : (
-                  <a
-                    className="suzu-btn-primary"
-                    href={gmailComposeUrl(subject, summary)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Open Email Draft
-                  </a>
-                )}
+                  {step === 3 && (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl border border-pink/20 bg-pink/5 p-4">
+                        <p className="text-sm font-black">Review summary</p>
+                        <pre className="mt-3 whitespace-pre-wrap text-xs leading-5 text-mocha">{summary}</pre>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={copySummary} className="suzu-btn-secondary min-h-11">
+                          {copied ? (
+                            <>
+                              <Check className="mr-2 h-4 w-4" /> Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="mr-2 h-4 w-4" /> Copy summary
+                            </>
+                          )}
+                        </button>
+                        <a className="suzu-btn-primary min-h-11" href={getMailtoUrl(subject, summary)}>
+                          <Mail className="mr-2 h-4 w-4" /> Open email app
+                        </a>
+                        <a
+                          className="suzu-btn-secondary min-h-11"
+                          href={getXContactUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" /> DM on X
+                        </a>
+                        <button type="button" className="suzu-btn-secondary min-h-11" onClick={copyDiscord}>
+                          Copy Discord
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {error ? <p className="mt-4 text-sm font-bold text-rose">{error}</p> : null}
+                </div>
+
+                <footer className="sticky bottom-0 z-10 shrink-0 border-t border-[#f45c9f]/15 bg-white/90 p-4 backdrop-blur-xl sm:p-5">
+                  <div className="flex flex-wrap gap-2">
+                    {step > 1 ? (
+                      <button
+                        type="button"
+                        className="suzu-btn-secondary min-h-11"
+                        onClick={() => {
+                          setError(null);
+                          setStep((s) => Math.max(1, s - 1));
+                        }}
+                      >
+                        Back
+                      </button>
+                    ) : null}
+                    {step < totalSteps ? (
+                      <button type="button" className="suzu-btn-primary min-h-11" onClick={goNext}>
+                        Next
+                      </button>
+                    ) : (
+                      <a className="suzu-btn-primary min-h-11" href={getMailtoUrl(subject, summary)}>
+                        Open email draft
+                      </a>
+                    )}
+                  </div>
+                </footer>
               </div>
             </div>
-          </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function Field({
+  label,
+  children,
+  className = '',
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={`text-sm font-black ${className}`}>
+      {label}
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+function PreviewCard({
+  label,
+  title,
+  price,
+  note,
+  image,
+  tags = [],
+}: {
+  label: string;
+  title: string;
+  price: string;
+  note?: string;
+  image?: string;
+  tags?: string[];
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/70 bg-white/75 p-3 shadow-soft">
+      {image ? (
+        <Image
+          src={image}
+          alt={title}
+          width={720}
+          height={900}
+          className="max-h-[42svh] w-full rounded-[1.2rem] object-contain lg:max-h-[48svh]"
+        />
+      ) : (
+        <div className="grid aspect-[4/5] place-items-center rounded-[1.2rem] bg-gradient-to-br from-blush/40 to-lavender/40 p-6 text-center">
+          <p className="font-display text-2xl font-black">{title}</p>
+        </div>
+      )}
+      <div className="mt-4 space-y-2 px-1">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-pink">{label}</p>
+        <p className="text-sm font-black">{title}</p>
+        <p className="text-2xl font-black text-pink">{price}</p>
+        <p className="text-xs leading-5 text-mocha">
+          {note || 'Base estimate per character. Final quote depends on complexity, background, commercial use, and deadline.'}
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {tags.map((t) => (
+            <span key={t} className="tag">
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

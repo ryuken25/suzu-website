@@ -8,6 +8,7 @@ import { useGSAP } from '@gsap/react';
 import { useReducedMotion } from 'framer-motion';
 import { portfolio } from '@/data/portfolio';
 import type { RequestSeed } from '@/lib/requestSeed';
+import { buildArtworkRequestSeed } from '@/lib/openArtworkRequest';
 import { scrollToSection } from '@/lib/scrollToSection';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -43,8 +44,8 @@ const chapters = [
   },
   {
     id: 'pick',
-    title: 'Pick a Style',
-    body: 'Tap any sample and start a request with the artwork already attached to your summary.',
+    title: 'Pick Your Request',
+    body: 'Choose any sample and Suzu will receive the title, style, category, and base estimate automatically.',
     tags: ['request', 'commission'],
     pick: (items: typeof portfolio) => items.filter((i) => i.featured).slice(0, 4),
   },
@@ -168,23 +169,7 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
   }
 
   function requestFrom(item: (typeof portfolio)[number], source: RequestSeed['source'] = 'portfolio-story') {
-    onOpenRequest({
-      type: 'commission',
-      source,
-      style: item.categories.includes('chibi')
-        ? 'chibi'
-        : item.categories.includes('couple')
-          ? 'couple'
-          : item.categories.includes('collab-ready')
-            ? 'collab-asset'
-            : 'anime',
-      characters: item.categories.includes('couple') ? 2 : 1,
-      selectedArtwork: {
-        title: item.title,
-        image: item.file,
-        categories: item.categories,
-      },
-    });
+    onOpenRequest(buildArtworkRequestSeed(item, source));
   }
 
   const active = slides[activeIndex];
@@ -204,7 +189,22 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
             <button className="suzu-btn-secondary" onClick={() => scrollToSection('portfolio-archive')}>
               View All Works
             </button>
-            <button className="suzu-btn-secondary" onClick={() => onOpenRequest({ type: 'commission', source: 'portfolio-story' })}>
+            <button
+              className="suzu-btn-secondary"
+              onClick={() =>
+                onOpenRequest({
+                  type: 'commission',
+                  mode: 'custom',
+                  source: 'portfolio-story',
+                  style: 'anime',
+                  crop: 'half-body',
+                  characters: 1,
+                  selectedPriceId: 'anime-half-body',
+                  selectedPriceLabel: 'Anime Half Body — IDR 100k / $25',
+                  skipTypeStep: true,
+                })
+              }
+            >
               Open Commission
             </button>
           </div>
@@ -258,32 +258,37 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
               </div>
             </aside>
 
-            <div className="relative story-panel-frame overflow-hidden rounded-[2rem]">
+            <div className="relative story-panel-frame min-h-[620px] overflow-visible rounded-[2rem] border border-white/70 bg-white/35 p-4 shadow-soft backdrop-blur-xl xl:min-h-[700px]">
               {slides.map((slide, i) => (
                 <article
                   key={slide.id}
                   ref={(el) => {
                     if (el) cardsRef.current[i] = el;
                   }}
-                  className="absolute inset-0 grid place-items-center p-4"
+                  className="absolute inset-0 p-4"
                 >
-                  <div className="grid w-full max-w-[640px] grid-cols-2 gap-3">
-                    {slide.arts.map((art) => (
+                  <div className="grid h-full w-full grid-cols-2 gap-4">
+                    {slide.arts.slice(0, 4).map((art) => (
                       <button
                         key={art.id}
+                        type="button"
                         onClick={() => requestFrom(art)}
-                        className="group relative overflow-hidden rounded-[1.4rem] border border-white/70 bg-white/70 p-2 text-left shadow-soft"
+                        className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/80 p-3 text-left shadow-soft transition hover:-translate-y-1 hover:bg-white"
                       >
-                        <Image
-                          src={art.file}
-                          alt={art.alt}
-                          width={640}
-                          height={800}
-                          className="aspect-[4/5] w-full rounded-[1.1rem] object-cover transition duration-500 group-hover:scale-[1.03]"
-                        />
-                        <div className="pointer-events-none absolute inset-x-2 bottom-2 rounded-2xl bg-gradient-to-t from-ink/70 via-ink/25 to-transparent p-3 text-white opacity-0 transition group-hover:opacity-100">
-                          <p className="text-sm font-black">{art.title}</p>
-                          <p className="text-xs">Request this</p>
+                        <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[1.1rem] bg-gradient-to-br from-white via-[#fff7fb] to-[#f7f0ff]">
+                          <Image
+                            src={art.file}
+                            alt={art.alt}
+                            fill
+                            sizes="(min-width: 1024px) 25vw, 80vw"
+                            className="object-contain p-2 transition duration-500 group-hover:scale-[1.03]"
+                          />
+                        </div>
+                        <div className="mt-3 flex shrink-0 items-center justify-between gap-2">
+                          <p className="line-clamp-1 text-sm font-black text-ink">{art.title}</p>
+                          <span className="rounded-full bg-pink px-3 py-1 text-[11px] font-black text-white shadow-soft">
+                            Request similar
+                          </span>
                         </div>
                       </button>
                     ))}

@@ -45,7 +45,16 @@ export function OpenCollab({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
             </p>
           </div>
           <button
-            onClick={() => onOpenRequest({ type: 'collab', source: 'open-collab', style: 'collab-asset' })}
+            onClick={() =>
+              onOpenRequest({
+                type: 'collab',
+                mode: 'collab-proposal',
+                source: 'open-collab',
+                usage: 'collab project',
+                collabType: 'Creator collab / cover / MV / stream asset',
+                skipTypeStep: true,
+              })
+            }
             className="suzu-btn-primary mt-8"
           >
             Propose a Collab
@@ -63,9 +72,11 @@ export function OpenCollab({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
                 onClick={() =>
                   onOpenRequest({
                     type: 'collab',
+                    mode: 'collab-proposal',
                     source: 'open-collab',
-                    style: 'collab-asset',
+                    usage: 'collab project',
                     collabType: title,
+                    skipTypeStep: true,
                   })
                 }
               >

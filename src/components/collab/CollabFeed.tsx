@@ -5,6 +5,7 @@ import { Palette, Star } from 'lucide-react';
 import { getCollabs } from '@/lib/collabs';
 import { getXArt } from '@/lib/x-art';
 import type { RequestSeed } from '@/lib/requestSeed';
+import { buildXArtRequestSeed } from '@/lib/openArtworkRequest';
 
 export function XArtFeed({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) => void }) {
   const items = getXArt();
@@ -42,16 +43,16 @@ export function XArtFeed({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed
                     <button
                       className="suzu-btn-primary"
                       onClick={() =>
-                        onOpenRequest({
-                          type: 'commission',
-                          source: 'x-art',
-                          style: 'chibi',
-                          selectedArtwork: {
+                        onOpenRequest(
+                          buildXArtRequestSeed({
+                            id: item.id,
                             title: 'X Art Sample',
                             image: item.media[0].url,
-                            categories: item.tags,
-                          },
-                        })
+                            url: item.url,
+                            tags: item.tags,
+                            source: 'x-art',
+                          }),
+                        )
                       }
                     >
                       Request similar
@@ -88,7 +89,14 @@ export function CollabFeed({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
               Suzu’s collab archive only shows posts with clear project/collaboration signals. No dummy posts are displayed.
             </p>
             <button
-              onClick={() => onOpenRequest({ type: 'collab', source: 'collab-feed', style: 'collab-asset' })}
+              onClick={() => onOpenRequest({
+                type: 'collab',
+                mode: 'collab-proposal',
+                source: 'collab-feed',
+                usage: 'collab project',
+                collabType: 'Creator collab / cover / MV / stream asset',
+                skipTypeStep: true,
+              })}
               className="suzu-btn-primary mt-6"
             >
               Propose a Collab
@@ -97,12 +105,45 @@ export function CollabFeed({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {collabs.map((c) => (
-              <div key={c.id} className="glass rounded-[2rem] p-5">
+              <div key={c.id} className="glass rounded-[2rem] p-4">
+                {c.media?.[0]?.url ? (
+                  <div className="relative mb-4 aspect-square overflow-hidden rounded-[1.5rem] bg-white/60">
+                    <Image
+                      src={c.media[0].url}
+                      alt={c.text}
+                      fill
+                      sizes="(max-width:768px) 90vw, 33vw"
+                      className="object-contain p-2"
+                    />
+                  </div>
+                ) : null}
                 <span className="tag">{c.source === 'manual' ? 'Curated Collab' : 'Verified Collab'}</span>
                 <p className="mt-4 line-clamp-4 text-sm leading-7 text-mocha">{c.text}</p>
-                <a className="suzu-btn-secondary mt-5 inline-flex" href={c.url} target="_blank" rel="noopener noreferrer">
-                  Open on X
-                </a>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <a className="suzu-btn-secondary inline-flex" href={c.url} target="_blank" rel="noopener noreferrer">
+                    Open on X
+                  </a>
+                  {c.media?.[0]?.url ? (
+                    <button
+                      type="button"
+                      className="suzu-btn-primary"
+                      onClick={() =>
+                        onOpenRequest(
+                          buildXArtRequestSeed({
+                            id: c.id,
+                            title: 'X Collab Reference',
+                            image: c.media?.[0]?.url || '',
+                            url: c.url,
+                            tags: c.tags,
+                            source: 'collab-feed',
+                          }),
+                        )
+                      }
+                    >
+                      Request similar
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>

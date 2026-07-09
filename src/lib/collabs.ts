@@ -1,8 +1,24 @@
-
-import manual from '@/data/collabs.manual.json';
 import generated from '@/data/collabs.generated.json';
-import type { CollabPost } from './x-collab-filter';
-export function getCollabs(): CollabPost[] {
-  const all = [...(generated as CollabPost[]), ...(manual as CollabPost[])];
-  return all.filter(x => x.approved).sort((a,b)=> +new Date(b.date)- +new Date(a.date));
+
+export type CollabItem = {
+  id: string;
+  source: string;
+  url: string;
+  text: string;
+  createdAt?: string;
+  author?: string;
+  media?: { url: string; width?: number; height?: number }[];
+  collaborators?: string[];
+  tags?: string[];
+  score?: number;
+  projectType?: string;
+  confidence?: number;
+  acceptedReason?: string[];
+};
+
+export function getCollabs(): CollabItem[] {
+  return (generated as CollabItem[]).filter((item) => {
+    const hasImage = Array.isArray(item.media) && item.media.length > 0;
+    return hasImage && Boolean(item.url) && Boolean(item.text);
+  });
 }

@@ -57,12 +57,20 @@ export function PricingSection({ onOpenRequest }: { onOpenRequest: (seed?: Reque
                   onClick={() =>
                     onOpenRequest({
                       type: 'commission',
+                      mode: 'pricelist',
                       source: 'pricing',
                       style: card.style.startsWith('Chibi') ? 'chibi' : 'anime',
+                      crop: 'half-body',
+                      characters: 1,
+                      selectedPriceId: card.style.startsWith('Chibi') ? 'chibi-half-body' : 'anime-half-body',
+                      selectedPriceLabel: card.style.startsWith('Chibi')
+                        ? 'Chibi Half Body — IDR 45k / $8'
+                        : 'Anime Half Body — IDR 100k / $25',
+                      skipTypeStep: true,
                     })
                   }
                 >
-                  Request this style
+                  Use this pricelist
                 </button>
               </div>
             </div>
@@ -131,10 +139,14 @@ export function PricingSection({ onOpenRequest }: { onOpenRequest: (seed?: Reque
             onClick={() =>
               onOpenRequest({
                 type: 'commission',
+                mode: 'pricelist',
                 source: 'pricing',
                 style,
                 crop: crop === 'headshot' && style === 'anime' ? 'bust-up' : crop,
                 characters,
+                selectedPriceId: `${style}-${crop}`,
+                selectedPriceLabel: estimate.label,
+                skipTypeStep: true,
               })
             }
           >
