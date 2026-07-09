@@ -22,7 +22,7 @@ export function Hero({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) =>
             Suzu <span className="text-pink">Art Studio</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-8 text-mocha sm:text-lg">
-            Anime and chibi illustrations for commissions, profile icons, couple art, and creator collaborations.
+            Anime &amp; chibi illustration for commissions, creator projects, and clean collab visuals.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
@@ -45,19 +45,29 @@ export function Hero({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) =>
               Open Commission
             </button>
             <button onClick={() => scrollToSection('portfolio-story-stage')} className="suzu-btn-secondary">
-              See Portfolio Story
+              See Portfolio
             </button>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {['Chibi', 'Anime', 'Couple', 'Collab Assets'].map((x) => (
-              <span key={x} className="tag">{x}</span>
-            ))}
+            <button
+              onClick={() =>
+                onOpenRequest({
+                  type: 'collab',
+                  mode: 'collab-proposal',
+                  source: 'hero',
+                  usage: 'collab project',
+                  collabType: 'Creator collab / cover / MV / stream asset',
+                  skipTypeStep: true,
+                })
+              }
+              className="suzu-btn-secondary"
+            >
+              Propose Collab
+            </button>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3 text-sm font-bold text-mocha">
             <span className="rounded-full bg-white/70 px-3 py-2">Anime from IDR 65k</span>
             <span className="rounded-full bg-white/70 px-3 py-2">Chibi from IDR 25k</span>
+            <span className="rounded-full bg-white/70 px-3 py-2">Open for scoped collabs</span>
             <span className="rounded-full bg-white/70 px-3 py-2">X @ssuzudayo</span>
           </div>
         </motion.div>

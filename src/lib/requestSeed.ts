@@ -12,6 +12,30 @@ export type RequestSource =
   | 'x-art'
   | 'contact'
   | 'open-collab';
+export type CollabProjectType =
+  | 'Cover / MV Illustration'
+  | 'VTuber / Stream Asset'
+  | 'OC / Mascot Project'
+  | 'Mutual Creative Collab'
+  | string;
+
+export type SuzuRole =
+  | 'Main illustration'
+  | 'Chibi asset set'
+  | 'Character / mascot art'
+  | 'Shared creative partner'
+  | string;
+
+export type SelectedCollabSeed = {
+  id?: string;
+  title: string;
+  description: string;
+  projectType: CollabProjectType;
+  suzuRole: SuzuRole;
+  usage: string;
+  images?: string[];
+  sourceUrl?: string;
+};
 
 export type SelectedArtworkSeed = {
   id?: string;
@@ -35,7 +59,9 @@ export type RequestSeed = {
   selectedPriceLabel?: string;
   selectedPriceId?: string;
   collabType?: string;
-  projectRole?: string;
+  projectType?: CollabProjectType;
+  suzuRole?: SuzuRole;
+  selectedCollab?: SelectedCollabSeed;
   skipTypeStep?: boolean;
 };
 
@@ -53,8 +79,8 @@ export type RequestFormState = {
   brief: string;
   references: string;
   notes: string;
-  projectType: string;
-  projectRole: string;
+  projectType: CollabProjectType;
+  suzuRole: SuzuRole;
 };
 
 export const defaultCommissionForm: RequestFormState = {
@@ -72,7 +98,7 @@ export const defaultCommissionForm: RequestFormState = {
   references: '',
   notes: '',
   projectType: '',
-  projectRole: '',
+  suzuRole: '',
 };
 
 export const defaultCollabForm: RequestFormState = {
@@ -80,8 +106,8 @@ export const defaultCollabForm: RequestFormState = {
   type: 'collab',
   mode: 'collab-proposal',
   usage: 'collab project',
-  projectType: 'Cover / MV visual',
-  projectRole: 'illustration / visual asset',
+  projectType: '',
+  suzuRole: '',
 };
 
 function hasCategory(categories: string[], key: string) {
@@ -97,14 +123,16 @@ export function inferScopeFromSeed(seed?: RequestSeed | null): RequestFormState 
   const fromOpenCollab =
     seed.source === 'open-collab' || seed.mode === 'collab-proposal' || seed.type === 'collab';
   if (fromOpenCollab && seed.mode !== 'similar') {
+    const resolvedProjectType = seed.projectType || seed.selectedCollab?.projectType || seed.collabType || '';
+    const resolvedSuzuRole = seed.suzuRole || seed.selectedCollab?.suzuRole || '';
     return {
       ...defaultCollabForm,
       type: 'collab',
       mode: 'collab-proposal',
       usage: seed.usage || 'collab project',
-      projectType: seed.collabType || 'Cover / MV visual',
-      notes: seed.collabType ? `Collab type: ${seed.collabType}` : '',
-      projectRole: seed.projectRole || 'illustration / visual asset',
+      projectType: resolvedProjectType,
+      suzuRole: resolvedSuzuRole,
+      notes: seed.selectedCollab ? `Collab: ${seed.selectedCollab.title}` : seed.collabType ? `Collab type: ${seed.collabType}` : '',
     };
   }
 
@@ -154,10 +182,10 @@ export function getMissingFields(step: number, form: RequestFormState) {
   if (form.type === 'collab') {
     if (step === 1) {
       return [
-        !form.projectType.trim() && 'project type',
+        !String(form.projectType).trim() && 'project type',
         !form.usage.trim() && 'usage / where it will be used',
         !form.brief.trim() && 'project details',
-        !form.projectRole.trim() && "Suzu's requested role",
+        !String(form.suzuRole).trim() && "Suzu's requested role",
       ].filter(Boolean) as string[];
     }
     if (step === 2) {
@@ -196,7 +224,8 @@ export function buildSummary(input: {
   characters?: number;
   background?: string;
   usage?: string;
-  projectRole?: string;
+  projectRole?: string; // backward compat alias
+  suzuRole?: string;
   deadline?: string;
   selectedTitle?: string;
   selectedUrl?: string;
@@ -217,7 +246,7 @@ export function buildSummary(input: {
     !isCollab && input.characters ? `Characters: ${input.characters}` : null,
     input.background && !isCollab ? `Background: ${input.background}` : null,
     input.usage ? `Usage / project type: ${input.usage}` : null,
-    isCollab ? `Requested role: ${input.projectRole || '-'}` : null,
+    isCollab ? `Requested role: ${input.suzuRole || input.projectRole || '-'}` : null,
     `Deadline: ${input.deadline?.trim() || 'Flexible / not specified'}`,
     `Selected sample: ${input.selectedTitle || '-'}`,
     input.selectedUrl ? `Selected sample link: ${input.selectedUrl}` : null,

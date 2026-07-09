@@ -23,24 +23,28 @@ const fieldClass =
   'w-full rounded-2xl border border-pink/25 bg-white px-4 py-3 font-semibold outline-none focus:border-pink/50';
 
 const projectTypes = [
-  'Cover / MV visual',
-  'Stream asset',
-  'Creator promo',
-  'Character project',
-  'Thumbnail / visualizer',
-  'Other',
+  'Cover / MV Illustration',
+  'VTuber / Stream Asset',
+  'OC / Mascot Project',
+  'Mutual Creative Collab',
 ];
 
 const roles = [
-  'Illustration',
-  'Chibi asset',
-  'Character visual',
-  'Promo art',
-  'Thumbnail art',
+  'Main illustration',
+  'Chibi asset set',
+  'Character / mascot art',
+  'Shared creative partner',
   'Discuss together',
 ];
 
 const characterPresets = [1, 2, 3] as const;
+
+const projectTypeRoleMap: Record<string, string> = {
+  'Cover / MV Illustration': 'Main illustration',
+  'VTuber / Stream Asset': 'Chibi asset set',
+  'OC / Mascot Project': 'Character / mascot art',
+  'Mutual Creative Collab': 'Shared creative partner',
+};
 
 export function SuzuRequestModal({
   request,
@@ -151,12 +155,18 @@ export function SuzuRequestModal({
   }
 
   const headerTitle = isCollab ? 'Tell Suzu about the project' : 'Tell Suzu what you want';
+
+  const commissionStepLabels = ['Style & scope', 'Contact & brief', 'Review & send'];
+  const collabStepLabels = ['Project scope', 'Contact & details', 'Review & send'];
+  const stepLabels = isCollab ? collabStepLabels : commissionStepLabels;
+  const stepLabel = stepLabels[step - 1] || '';
+
   const headerEyebrow =
     screen === 'chooser'
       ? 'Order chooser'
       : isCollab
-        ? `Collab proposal · Step ${step}/${totalSteps}`
-        : `Request wizard · Step ${step}/${totalSteps}`;
+        ? `Request wizard · Collab proposal · Step ${step}/${totalSteps} — ${stepLabel}`
+        : `Request wizard · Commission · Step ${step}/${totalSteps} — ${stepLabel}`;
 
   return (
     <AnimatePresence>
@@ -342,9 +352,14 @@ export function SuzuRequestModal({
                             <button
                               key={p}
                               type="button"
-                              onClick={() => setForm({ ...form, projectType: p, usage: form.usage || p })}
-                              className={`rounded-full px-3 py-2 text-xs font-black ${
-                                form.projectType === p ? 'bg-pink text-white' : 'bg-pink/10 text-mocha'
+                              onClick={() => {
+                                const autoRole = projectTypeRoleMap[p] || form.suzuRole;
+                                setForm({ ...form, projectType: p, suzuRole: autoRole, usage: form.usage || p });
+                              }}
+                              className={`rounded-full px-4 py-2.5 text-xs font-black transition ${
+                                form.projectType === p
+                                  ? 'border-[#f45c9f]/60 bg-white text-pink shadow-[0_18px_60px_rgba(244,92,159,.24)] ring-2 ring-[#f45c9f]/15'
+                                  : 'bg-pink/10 text-mocha'
                               }`}
                             >
                               {p}
@@ -359,9 +374,9 @@ export function SuzuRequestModal({
                             <button
                               key={r}
                               type="button"
-                              onClick={() => setForm({ ...form, projectRole: r })}
+                              onClick={() => setForm({ ...form, suzuRole: r })}
                               className={`rounded-full px-3 py-2 text-xs font-black ${
-                                form.projectRole === r ? 'bg-violet text-white' : 'bg-lavender/30 text-mocha'
+                                form.suzuRole === r ? 'bg-violet text-white' : 'bg-lavender/30 text-mocha'
                               }`}
                             >
                               {r}

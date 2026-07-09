@@ -15,10 +15,10 @@ export function ContactSection({ onOpenRequest }: { onOpenRequest: (seed?: Reque
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#f45c9f]">Contact</p>
             <h2 className="mt-3 font-display text-[clamp(2.2rem,4vw,3.6rem)] font-black leading-[0.98] text-[#342631]">
-              Ready for a character commission or collab?
+              Ready to request art or pitch a collab?
             </h2>
             <p className="mt-4 max-w-xl text-base leading-8 text-[#604a58]">
-              Tell Suzu what you want. The form creates a clean summary you can send by email, X DM, or Discord.
+              Send Suzu a clean summary through email, X, or Discord.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
