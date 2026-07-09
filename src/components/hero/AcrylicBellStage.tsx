@@ -11,7 +11,7 @@ const placements = [
   { left: '58%', top: '56%', rotate: -6 },
 ];
 
-export function AcrylicBellStage() {
+export function PortfolioHeroStage() {
   const reduce = useReducedMotion();
   const cards = [
     ...portfolio.filter((x) => x.featured),
@@ -45,7 +45,6 @@ export function AcrylicBellStage() {
         <div className="absolute inset-6 rounded-[3rem] bg-gradient-to-br from-blush/70 via-lavender/40 to-sky/50 blur-2xl" />
         <div className="absolute inset-10 rounded-[2.8rem] border border-white/70 bg-white/35 shadow-strong backdrop-blur-xl" />
 
-        {/* Bell core */}
         <div className="absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 sm:h-52 sm:w-52">
           <div className="absolute inset-0 rounded-b-[48%] rounded-t-full border border-white/80 bg-gradient-to-b from-white/80 via-blush/40 to-lavender/40 shadow-[inset_0_2px_24px_rgba(255,255,255,.7),0_30px_80px_rgba(244,95,156,.22)]" />
           <div className="absolute left-1/2 top-6 h-4 w-20 -translate-x-1/2 rounded-full bg-peach/80" />
@@ -80,7 +79,7 @@ export function AcrylicBellStage() {
         })}
 
         <div className="absolute bottom-4 left-1/2 w-[min(90%,280px)] -translate-x-1/2 rounded-full border border-white/70 bg-white/75 px-4 py-2 text-center text-[11px] font-bold text-mocha shadow-soft">
-          Tap an artwork → request similar style
+          Pick an artwork → request a similar style
         </div>
       </motion.div>
     </div>

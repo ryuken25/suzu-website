@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://suzu-comms.vercel.app'),
   title: 'Suzu Art Studio - Anime & Chibi Illustration',
   description:
-    'Soft anime and chibi illustration portfolio, commission pricing, and open creative collaboration hub by Suzu Art Studio.',
+    'Anime and chibi illustration portfolio, commission pricing, and creative collaboration hub by Suzu Art Studio.',
   keywords: [
     'Suzu Art Studio',
     'Suzu',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     'collab art',
   ],
   openGraph: {
-    title: 'Suzu Art Studio — Pastel Bell Atelier',
+    title: 'Suzu Art Studio — Anime & Chibi Illustration',
     description: 'Anime & chibi commissions, portfolio story, pricing, and open collab.',
     url: 'https://suzu-comms.vercel.app',
     siteName: 'Suzu Art Studio',

@@ -10,7 +10,7 @@ export function ContactCTA({ onOpenRequest }: { onOpenRequest: (seed?: RequestSe
         <div className="rounded-[3rem] border border-white/60 bg-gradient-to-br from-rose via-petal to-violet p-8 text-center text-white shadow-strong sm:p-12">
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/85">Contact</p>
           <h2 className="mx-auto mt-3 max-w-3xl font-display text-5xl font-black leading-tight">
-            Ready for a soft character piece or collab?
+            Ready for a character commission or collab?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-white/90">
             Tell Suzu what you want. The form creates a clean summary you can send by Gmail, email app, X DM, or Discord.

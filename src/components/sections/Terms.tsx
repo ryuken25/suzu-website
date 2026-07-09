@@ -55,7 +55,7 @@ export function Terms() {
       <div className="container-suzu">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <p className="eyebrow">Terms</p>
-          <h2 className="section-title mt-3">Clear scope, soft process</h2>
+          <h2 className="section-title mt-3">Clear scope, simple process</h2>
         </div>
         <div className="mx-auto max-w-4xl space-y-3">
           {terms.map((t, i) => (

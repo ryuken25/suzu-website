@@ -15,7 +15,7 @@ export function ContactSection({ onOpenRequest }: { onOpenRequest: (seed?: Reque
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#f45c9f]">Contact</p>
             <h2 className="mt-3 font-display text-[clamp(2.2rem,4vw,3.6rem)] font-black leading-[0.98] text-[#342631]">
-              Ready for a soft character piece or collab?
+              Ready for a character commission or collab?
             </h2>
             <p className="mt-4 max-w-xl text-base leading-8 text-[#604a58]">
               Tell Suzu what you want. The form creates a clean summary you can send by email, X DM, or Discord.
@@ -69,7 +69,7 @@ export function ContactSection({ onOpenRequest }: { onOpenRequest: (seed?: Reque
             <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#9c7dff]">
               <Sparkles className="h-4 w-4" /> Send-ready summary
             </div>
-            <h3 className="mt-4 font-display text-2xl font-black text-[#342631]">3 soft steps</h3>
+            <h3 className="mt-4 font-display text-2xl font-black text-[#342631]">3 quick steps</h3>
             <ol className="mt-5 space-y-3">
               {[
                 ['01', 'Pick style', 'Commission custom, pricelist, or collab proposal.'],
