@@ -1,0 +1,66 @@
+[
+  {
+    "id": "2074969274993795198",
+    "url": "https://x.com/ssuzudayo/status/2074969274993795198",
+    "text": "おはよ",
+    "rejectReason": [
+      "game/vrc/status signal: おはよ"
+    ],
+    "artScore": -0.3,
+    "collabScore": -0.3
+  },
+  {
+    "id": "2072723512511594669",
+    "url": "https://x.com/ssuzudayo/status/2072723512511594669",
+    "text": "#mafuyu3d",
+    "rejectReason": [
+      "game/vrc/status signal: #mafuyu3d",
+      "game/vrc/status signal: mafuyu3d"
+    ],
+    "artScore": -0.3,
+    "collabScore": -0.3
+  },
+  {
+    "id": "2074528739103572103",
+    "url": "https://x.com/ssuzudayo/status/2074528739103572103",
+    "text": "",
+    "rejectReason": [
+      "insufficient art confidence (0.30)"
+    ],
+    "artScore": 0.3,
+    "collabScore": 0.2
+  },
+  {
+    "id": "2017880811354349635",
+    "url": "https://x.com/ssuzudayo/status/2017880811354349635",
+    "text": "絵描きたい",
+    "rejectReason": [
+      "no artwork media"
+    ],
+    "artScore": -0.05,
+    "collabScore": -0.5
+  },
+  {
+    "id": "1981707242140573851",
+    "url": "https://x.com/ssuzudayo/status/1981707242140573851",
+    "text": "昨日は誕生日でした！友達からたくさん祝いの言葉を貰いました。そしてプレゼントも！嬉しいです🥺🥺🩷",
+    "rejectReason": [
+      "negative signal: 貰いました",
+      "negative signal: プレゼントも",
+      "negative signal: 祝いの言葉",
+      "negative signal: 誕生日でした"
+    ],
+    "artScore": -0.3,
+    "collabScore": -0.3
+  },
+  {
+    "id": "1987021077651046749",
+    "url": "https://x.com/ssuzudayo/status/1987021077651046749",
+    "text": "@aiaoi_hasu 可愛い！絵を描けるのを知らなかった。今度コラボしよーよ",
+    "rejectReason": [
+      "no artwork media"
+    ],
+    "artScore": 0.1,
+    "collabScore": 0.1
+  }
+]

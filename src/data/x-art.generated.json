@@ -1,0 +1,25 @@
+[
+  {
+    "id": "2002850925304836354",
+    "source": "x-scrape",
+    "url": "https://x.com/ssuzudayo/status/2002850925304836354",
+    "text": "@Kanata1222 時間ないから簡単な絵しか描けないけど、感謝してね",
+    "createdAt": "Sun Dec 21 21:17:26 +0000 2025",
+    "media": [
+      {
+        "url": "/suzu/x-art/2002850925304836354-0.jpg",
+        "type": "photo",
+        "alt": "Suzu art from X post 2002850925304836354"
+      }
+    ],
+    "tags": [
+      "art"
+    ],
+    "confidence": 0.9,
+    "acceptedReason": [
+      "art/illustration wording",
+      "mentions: Kanata1222",
+      "has media"
+    ]
+  }
+]
