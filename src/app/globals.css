@@ -32,8 +32,8 @@
   --foreground: var(--suzu-ink);
 }
 
-* { box-sizing: border-box; }
-html, body { width: 100%; }
+*, *::before, *::after { box-sizing: border-box; min-width: 0; }
+html, body { width: 100%; max-width: 100%; }
 button, a, [role="button"], input, select, textarea { touch-action: manipulation; }
 @media (max-width: 768px) {
   button, a, [role="button"] { min-height: 44px; }

@@ -7,8 +7,8 @@ import type { RequestSeed } from '@/lib/requestSeed';
 export function ContactSection({ onOpenRequest }: { onOpenRequest: (seed?: RequestSeed) => void }) {
   return (
     <section id="contact" className="relative overflow-hidden px-4 py-24 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute -left-16 top-8 h-56 w-56 rounded-full bg-[#ffd4e6]/60 blur-3xl" />
-      <div className="pointer-events-none absolute -right-10 bottom-8 h-64 w-64 rounded-full bg-[#d8c8ff]/60 blur-3xl" />
+      <div className="pointer-events-none absolute left-0 top-8 h-56 w-56 rounded-full bg-[#ffd4e6]/60 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 bottom-8 h-64 w-64 rounded-full bg-[#d8c8ff]/60 blur-3xl" />
 
       <div className="relative mx-auto max-w-6xl rounded-[2.25rem] border border-white/70 bg-white/60 p-5 shadow-[0_30px_120px_rgba(244,92,159,.18)] backdrop-blur-2xl sm:p-8 lg:p-10">
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center">

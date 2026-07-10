@@ -1,0 +1,137 @@
+[
+  {
+    "site": "suzu",
+    "state": "story-start",
+    "w": 320,
+    "h": 700,
+    "m": {
+      "doc": 320,
+      "body": 320,
+      "iw": 320,
+      "y": 155,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-start-320.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-middle",
+    "w": 320,
+    "h": 700,
+    "m": {
+      "doc": 320,
+      "body": 320,
+      "iw": 320,
+      "y": 1113,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-middle-320.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-end",
+    "w": 320,
+    "h": 700,
+    "m": {
+      "doc": 320,
+      "body": 320,
+      "iw": 320,
+      "y": 1655,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-end-320.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-start",
+    "w": 390,
+    "h": 844,
+    "m": {
+      "doc": 390,
+      "body": 390,
+      "iw": 390,
+      "y": 70,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-start-390.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-middle",
+    "w": 390,
+    "h": 844,
+    "m": {
+      "doc": 390,
+      "body": 390,
+      "iw": 390,
+      "y": 1498,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-middle-390.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-end",
+    "w": 390,
+    "h": 844,
+    "m": {
+      "doc": 390,
+      "body": 390,
+      "iw": 390,
+      "y": 1570,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-end-390.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-start",
+    "w": 768,
+    "h": 1024,
+    "m": {
+      "doc": 768,
+      "body": 768,
+      "iw": 768,
+      "y": 237,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-start-768.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-middle",
+    "w": 768,
+    "h": 1024,
+    "m": {
+      "doc": 768,
+      "body": 768,
+      "iw": 768,
+      "y": 3573,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-middle-768.png"
+  },
+  {
+    "site": "suzu",
+    "state": "story-end",
+    "w": 768,
+    "h": 1024,
+    "m": {
+      "doc": 768,
+      "body": 768,
+      "iw": 768,
+      "y": 1737,
+      "text": []
+    },
+    "errors": [],
+    "screenshot": "qa/audit-before/suzu-story-end-768.png"
+  }
+]

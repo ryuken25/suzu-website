@@ -58,6 +58,7 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
   const cardsRef = useRef<HTMLElement[]>([]);
   const progressRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
+  const touchStartRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const slides = useMemo(
@@ -214,8 +215,8 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
       {/* Desktop pinned story */}
       <div ref={rootRef} id="portfolio-story-stage" className="relative isolate mt-[clamp(2rem,5vh,4rem)] hidden lg:block">
         <div className="pointer-events-none absolute inset-x-0 -top-24 bottom-0 -z-10 overflow-hidden">
-          <div className="absolute left-[10%] top-10 h-64 w-64 rounded-full bg-blush/40 blur-3xl" />
-          <div className="absolute right-[8%] top-24 h-72 w-72 rounded-full bg-lavender/40 blur-3xl" />
+          <div className="absolute left-0 top-10 h-64 w-64 rounded-full bg-blush/40 blur-3xl" />
+          <div className="absolute right-0 top-24 h-72 w-72 rounded-full bg-lavender/40 blur-3xl" />
         </div>
         <div ref={pinRef} className="story-sticky relative flex items-center overflow-visible">
           <div className="story-stage-grid mx-auto grid w-full max-w-7xl grid-cols-[0.88fr_1.12fr] items-center gap-8 px-8 py-6">
@@ -258,7 +259,7 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
               </div>
             </aside>
 
-            <div className="relative story-panel-frame min-h-[620px] overflow-visible rounded-[2rem] border border-white/70 bg-white/35 p-4 shadow-soft backdrop-blur-xl xl:min-h-[700px]">
+            <div className="relative story-panel-frame min-h-[620px] overflow-hidden rounded-[2rem] border border-white/70 bg-white/35 p-4 shadow-soft backdrop-blur-xl xl:min-h-[700px]">
               {slides.map((slide, i) => (
                 <article
                   key={slide.id}
@@ -300,26 +301,33 @@ export function PortfolioStory({ onOpenRequest }: { onOpenRequest: (seed?: Reque
         </div>
       </div>
 
-      {/* Mobile fallback cards */}
-      <div className="container-suzu mt-8 space-y-4 lg:hidden">
-        {slides.map((slide, i) => (
-          <article key={slide.id} className="glass-strong rounded-[2rem] p-5">
-            <p className="eyebrow">0{i + 1}</p>
-            <h3 className="mt-2 font-display text-[clamp(1.45rem,7vw,2.15rem)] font-black leading-[1.05]">{slide.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-mocha">{slide.body}</p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {slide.arts.slice(0, 2).map((art) => (
-                <button key={art.id} onClick={() => requestFrom(art)} className="overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2 text-left">
-                  <Image src={art.thumb} alt={art.alt} width={400} height={400} className="max-h-[48svh] w-full rounded-xl object-contain" />
-                  <p className="mt-2 text-xs font-black">{art.title}</p>
-                </button>
-              ))}
-            </div>
-            <button className="suzu-btn-primary mt-4 w-full" onClick={() => requestFrom(slide.arts[0])}>
-              Request this style
-            </button>
-          </article>
-        ))}
+      {/* Mobile snap story */}
+      <div className="container-suzu mt-8 lg:hidden">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div><p className="eyebrow">Portfolio Story</p><p className="text-sm font-black text-mocha">0{activeIndex + 1} / 0{slides.length}</p></div>
+          <div className="flex gap-2">
+            <button type="button" className="suzu-btn-secondary !min-h-11 !min-w-11 !px-3 !py-2" aria-label="Previous story beat" onClick={() => jumpTo(Math.max(0, activeIndex - 1))} disabled={activeIndex === 0}>←</button>
+            <button type="button" className="suzu-btn-secondary !min-h-11 !min-w-11 !px-3 !py-2" aria-label="Next story beat" onClick={() => jumpTo(Math.min(slides.length - 1, activeIndex + 1))} disabled={activeIndex === slides.length - 1}>→</button>
+          </div>
+        </div>
+        <article
+          className="glass-strong rounded-[2rem] p-5"
+          onTouchStart={(e) => { touchStartRef.current = e.touches[0]?.clientX ?? null; }}
+          onTouchEnd={(e) => { const start = touchStartRef.current; if (start === null) return; const dx = (e.changedTouches[0]?.clientX ?? start) - start; if (Math.abs(dx) > 40) jumpTo(Math.max(0, Math.min(slides.length - 1, activeIndex + (dx < 0 ? 1 : -1)))); touchStartRef.current = null; }}
+        >
+          <p className="eyebrow">0{activeIndex + 1}</p>
+          <h3 className="mt-2 font-display text-[clamp(1.45rem,7vw,2.15rem)] font-black leading-[1.05]">{slides[activeIndex].title}</h3>
+          <p className="mt-3 text-sm leading-7 text-mocha">{slides[activeIndex].body}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {slides[activeIndex].arts.slice(0, 2).map((art) => (
+              <button key={art.id} onClick={() => requestFrom(art)} className="overflow-hidden rounded-2xl border border-white/70 bg-white/70 p-2 text-left">
+                <Image src={art.thumb} alt={art.alt} width={400} height={400} sizes="(max-width: 768px) calc((100vw - 4.5rem) / 2), 220px" className="max-h-[48svh] w-full rounded-xl object-contain" priority={activeIndex === 0} />
+                <p className="mt-2 text-xs font-black">{art.title}</p>
+              </button>
+            ))}
+          </div>
+          <button className="suzu-btn-primary mt-4 w-full" onClick={() => requestFrom(slides[activeIndex].arts[0])}>Request this style</button>
+        </article>
       </div>
     </section>
   );
